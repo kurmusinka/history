@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Викторина — Литературный Петербург</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a84c;--cream:#f5f0e8;--dark:#0e0c0a;--dark2:#161310;--dark3:#1f1c17;--text:#d4cdb8;--dim:#7a7060;--green:#4a7c5f;--red:#7c3a3a}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Raleway',sans-serif;font-weight:300;min-height:100vh}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.7}
+
+/* HEADER */
+.header{text-align:center;padding:70px 20px 50px;border-bottom:1px solid rgba(201,168,76,.18);position:relative}
+.header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:50px;background:linear-gradient(to bottom,transparent,var(--gold))}
+.back-link{display:inline-block;margin-bottom:24px;font-size:.6rem;letter-spacing:4px;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .3s}
+.back-link:hover{color:var(--gold)}
+.back-link::before{content:'← '}
+.eyebrow{font-size:.62rem;letter-spacing:7px;text-transform:uppercase;color:var(--gold);opacity:.7;margin-bottom:20px}
+.title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;color:var(--cream);line-height:1.05}
+.title em{font-style:italic;color:var(--gold)}
+.subtitle{font-size:.72rem;letter-spacing:4px;text-transform:uppercase;color:var(--dim);margin-top:16px}
+
+/* MODE SELECTOR */
+.mode-wrap{max-width:700px;margin:50px auto;padding:0 24px}
+.mode-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;color:var(--cream);text-align:center;margin-bottom:24px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode-btn{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.2);padding:24px 20px;cursor:pointer;transition:all .3s;text-align:center;color:var(--text);font-family:'Raleway',sans-serif}
+.mode-btn:hover{background:rgba(201,168,76,.09);border-color:var(--gold)}
+.mode-btn.active{background:rgba(201,168,76,.12);border-color:var(--gold)}
+.mode-icon{font-size:2rem;display:block;margin-bottom:10px}
+.mode-name{font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:var(--cream);display:block;margin-bottom:6px}
+.mode-desc{font-size:.7rem;color:var(--dim);line-height:1.5}
+
+/* QUIZ CONTAINER */
+.quiz-wrap{max-width:700px;margin:0 auto;padding:0 24px 80px;display:none}
+.quiz-wrap.active{display:block}
+
+/* PROGRESS */
+.progress-bar-wrap{margin:30px 0 20px}
+.progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.progress-score{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold)}
+.progress-track{width:100%;height:2px;background:rgba(201,168,76,.15);border-radius:2px}
+.progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .5s ease}
+
+/* QUESTION CARD */
+.q-card{background:var(--dark2);border:1px solid rgba(201,168,76,.15);padding:32px;margin-bottom:16px;animation:fadeUp .4s ease forwards}
+.q-num{font-size:.58rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.q-num::after{content:'';flex:1;height:1px;background:rgba(201,168,76,.15)}
+.q-type-badge{font-size:.55rem;letter-spacing:2px;text-transform:uppercase;color:var(--dim);border:1px solid rgba(201,168,76,.2);padding:2px 8px;margin-left:8px}
+
+/* QUOTE QUESTION */
+.q-quote{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;line-height:1.8;color:var(--cream);padding:20px 24px;background:rgba(255,255,255,.02);border-left:3px solid var(--gold);margin-bottom:20px;position:relative}
+.q-quote-mark{font-size:3.5rem;line-height:0;color:rgba(201,168,76,.2);position:absolute;top:16px;left:10px;font-family:'Cormorant Garamond',serif}
+.q-quote-text{padding-left:20px;position:relative;z-index:1}
+
+/* REGULAR QUESTION */
+.q-text{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;color:var(--cream);line-height:1.6;margin-bottom:24px}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{background:rgba(255,255,255,.02);border:1px solid rgba(201,168,76,.15);padding:14px 18px;cursor:pointer;transition:all .25s;text-align:left;color:var(--text);font-family:'Raleway',sans-serif;font-size:.85rem;line-height:1.5;display:flex;align-items:center;gap:14px}
+.opt:hover:not(:disabled){background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.4)}
+.opt:disabled{cursor:default}
+.opt.correct{background:rgba(74,124,95,.2);border-color:#4a7c5f;color:var(--cream)}
+.opt.wrong{background:rgba(124,58,58,.2);border-color:#7c3a3a;color:var(--cream)}
+.opt.reveal{background:rgba(74,124,95,.1);border-color:rgba(74,124,95,.4)}
+.opt-letter{width:26px;height:26px;border-radius:50%;border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:.65rem;letter-spacing:1px;flex-shrink:0;transition:all .25s}
+.opt.correct .opt-letter{background:#4a7c5f;border-color:#4a7c5f;color:#fff}
+.opt.wrong .opt-letter{background:#7c3a3a;border-color:#7c3a3a;color:#fff}
+.opt.reveal .opt-letter{background:rgba(74,124,95,.3);border-color:#4a7c5f}
+
+/* FEEDBACK */
+.feedback{padding:16px 20px;margin-top:14px;border-left:3px solid;font-size:.85rem;line-height:1.6;display:none;animation:fadeUp .3s ease forwards}
+.feedback.show{display:block}
+.feedback.correct-fb{border-color:#4a7c5f;background:rgba(74,124,95,.1);color:#a8d4b8}
+.feedback.wrong-fb{border-color:#7c3a3a;background:rgba(124,58,58,.1);color:#d4a8a8}
+.feedback-icon{font-size:1.1rem;margin-right:8px}
+
+/* NEXT BTN */
+.next-btn{width:100%;margin-top:16px;background:none;border:1px solid rgba(201,168,76,.3);color:var(--gold);font-family:'Raleway',sans-serif;font-size:.65rem;letter-spacing:4px;text-transform:uppercase;padding:14px;cursor:pointer;transition:all .3s;display:none}
+.next-btn.show{display:block}
+.next-btn:hover{background:rgba(201,168,76,.1);border-color:var(--gold)}
+
+/* RESULTS */
+.results{text-align:center;padding:50px 24px;max-width:700px;margin:0 auto;display:none}
+.results.show{display:block;animation:fadeUp .5s ease forwards}
+.result-icon{font-size:4rem;display:block;margin-bottom:20px}
+.result-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:300;color:var(--cream);margin-bottom:12px}
+.result-title em{font-style:italic;color:var(--gold)}
+.result-score{font-family:'Cormorant Garamond',serif;font-size:3rem;color:var(--gold);display:block;margin:20px 0 8px}
+.result-total{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:30px;display:block}
+.result-msg{font-size:.95rem;line-height:1.8;color:var(--text);max-width:500px;margin:0 auto 40px}
+.result-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.result-btn{background:none;border:1px solid rgba(201,168,76,.3);color:var(--gold);font-family:'Raleway',sans-serif;font-size:.62rem;letter-spacing:4px;text-transform:uppercase;padding:12px 24px;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block}
+.result-btn:hover{background:rgba(201,168,76,.1);border-color:var(--gold)}
+.result-btn.primary{background:rgba(201,168,76,.1);border-color:var(--gold)}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0;max-width:500px;margin-left:auto;margin-right:auto}
+.stat-item{background:var(--dark2);border:1px solid rgba(201,168,76,.12);padding:16px;text-align:center}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);display:block}
+.stat-l{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-top:2px;display:block}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="back-link">Вернуться к маршруту</a>
+  <p class="eyebrow">Литературный Петербург</p>
+  <h1 class="title">Викторина по <em>маршрутам</em></h1>
+  <p class="subtitle">15 вопросов · Два формата</p>
+</div>
+
+<!-- MODE SELECT -->
+<div class="mode-wrap" id="modeSelect">
+  <p class="mode-title">Выберите формат викторины</p>
+  <div class="mode-grid">
+    <button class="mode-btn" onclick="startQuiz('test')">
+      <span class="mode-icon">📝</span>
+      <span class="mode-name">Тест</span>
+      <span class="mode-desc">Вопросы с четырьмя вариантами ответа. Выберите правильный.</span>
+    </button>
+    <button class="mode-btn" onclick="startQuiz('quote')">
+      <span class="mode-icon">💬</span>
+      <span class="mode-name">Угадай место</span>
+      <span class="mode-desc">Прочитайте цитату из произведения и угадайте, о каком месте идёт речь.</span>
+    </button>
+    <button class="mode-btn" onclick="startQuiz('mixed')">
+      <span class="mode-icon">🎯</span>
+      <span class="mode-name">Смешанный</span>
+      <span class="mode-desc">И тест, и цитаты вперемешку. Самый интересный формат!</span>
+    </button>
+    <button class="mode-btn" onclick="startQuiz('hard')">
+      <span class="mode-icon">🔥</span>
+      <span class="mode-name">Сложный</span>
+      <span class="mode-desc">Только каверзные вопросы о малоизвестных фактах маршрута.</span>
+    </button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-wrap" id="quizWrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-info">
+      <span class="progress-label" id="progressLabel">Вопрос 1 из 10</span>
+      <span class="progress-score" id="progressScore">0 очков</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div id="questionArea"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Следующий вопрос →</button>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+  <span class="result-icon" id="resultIcon">🏆</span>
+  <h2 class="result-title" id="resultTitle">Отличный <em>результат!</em></h2>
+  <span class="result-score" id="resultScore">8</span>
+  <span class="result-total" id="resultTotal">из 10 правильных ответов</span>
+  <div class="stat-grid">
+    <div class="stat-item"><span class="stat-n" id="statCorrect">0</span><span class="stat-l">Верно</span></div>
+    <div class="stat-item"><span class="stat-n" id="statWrong">0</span><span class="stat-l">Неверно</span></div>
+    <div class="stat-item"><span class="stat-n" id="statPct">0%</span><span class="stat-l">Результат</span></div>
+  </div>
+  <p class="result-msg" id="resultMsg"></p>
+  <div class="result-btns">
+    <button class="result-btn primary" onclick="restartQuiz()">Пройти ещё раз</button>
+    <button class="result-btn" onclick="showModes()">Другой формат</button>
+    <a href="index.html" class="result-btn">← К маршруту</a>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = {
+  test: [
+    {
+      q: 'В каком году была открыта гостиница «Астория»?',
+      opts: ['1905', '1910', '1912', '1917'],
+      correct: 2,
+      explain: 'Гостиница «Астория» была открыта в 1912 году по проекту архитектора Фёдора Лидваля.'
+    },
+    {
+      q: 'Как называли обычных посетителей «Подвала Бродячей собаки», которые платили за вход?',
+      opts: ['Буржуа', 'Фармацевты', 'Обыватели', 'Зрители'],
+      correct: 1,
+      explain: '«Фармацевтами» называли тех, кто не был художником или поэтом — людей без творческой жилки. Это слово стало настоящим оскорблением.'
+    },
+    {
+      q: 'Кто основал Тенишевское училище?',
+      opts: ['Горький', 'Блок', 'Князь Тенишев', 'Набоков'],
+      correct: 2,
+      explain: 'Школу основал в 1900 году промышленник и меценат князь Вячеслав Тенишев, вложив более миллиона рублей.'
+    },
+    {
+      q: 'Сколько лет Анна Ахматова прожила в Фонтанном доме?',
+      opts: ['10 лет', '20 лет', 'Около 30 лет', '5 лет'],
+      correct: 2,
+      explain: 'Ахматова прожила в Фонтанном доме почти 30 лет — с 1924 по 1952 год.'
+    },
+    {
+      q: 'Кто по инициативе открыл Дом искусств (ДИСК) в 1919 году?',
+      opts: ['Блок', 'Ахматова', 'Максим Горький', 'Мандельштам'],
+      correct: 2,
+      explain: 'ДИСК был открыт по инициативе Максима Горького как попытка спасти культуру и писателей от голода и нищеты.'
+    },
+    {
+      q: 'Какую поэму Блок написал в этой квартире в январе 1918 года?',
+      opts: ['Скифы', 'Двенадцать', 'Незнакомка', 'Соловьиный сад'],
+      correct: 1,
+      explain: 'Поэму «Двенадцать» Блок написал в своей квартире на улице Декабристов буквально за несколько дней, по собственным словам — «в состоянии транса».'
+    },
+    {
+      q: 'Что означает итальянское название кафе «Квисисана»?',
+      opts: ['Здесь отдыхают', 'Здесь исцеляются', 'Здесь едят', 'Здесь встречаются'],
+      correct: 1,
+      explain: '«Квисисана» в переводе с итальянского означает «здесь исцеляются». Владельцы хотели создать место, где городской человек отдыхает от суеты.'
+    },
+    {
+      q: 'Сколько лет просуществовал «Подвал Бродячей собаки»?',
+      opts: ['Около 10 лет', '5 лет', '3 года и 2 месяца', '1 год'],
+      correct: 2,
+      explain: 'Кабаре работало с 31 декабря 1911 по март 1915 года — всего три года и два месяца. Закрыто властями в разгар Первой мировой войны.'
+    },
+    {
+      q: 'Как называется роман Ольги Форш, написанный о жизни в ДИСКе?',
+      opts: ['Дом поэтов', 'Сумасшедший корабль', 'Петербургские зимы', 'Последний приют'],
+      correct: 1,
+      explain: '«Сумасшедший корабль» — роман Ольги Форш о жизни в Доме искусств. Название как нельзя лучше передаёт атмосферу того времени.'
+    },
+    {
+      q: 'Кто из двух знаменитых писателей учился в Тенишевском училище?',
+      opts: ['Блок и Ахматова', 'Мандельштам и Набоков', 'Бродский и Довлатов', 'Горький и Куприн'],
+      correct: 1,
+      explain: 'Осип Мандельштам и Владимир Набоков — оба учились в Тенишевском училище с разницей в несколько лет.'
+    },
+  ],
+  quote: [
+    {
+      quote: 'Стоит император Петр Великий, думает: «Запирую на просторе я!» — а рядом под пьяные клики строится гостиница «Астория».',
+      q: 'Из какого произведения эта цитата и кто её автор?',
+      opts: ['Маяковский, «Последняя петербургская сказка»', 'Блок, «Двенадцать»', 'Белый, «Петербург»', 'Ахматова, «Поэма без героя»'],
+      correct: 0,
+      explain: 'Эти строки написал Владимир Маяковский в поэме «Последняя петербургская сказка». Поэт иронизирует над строительством «Астории» рядом с памятниками имперской России.'
+    },
+    {
+      quote: 'Во втором дворе подвал, В нём — приют собачий. Каждый, кто сюда попал — Просто пёс бродячий.',
+      q: 'О каком месте говорится в этих строках?',
+      opts: ['«Привал Комедиантов»', '«Подвал Бродячей собаки»', 'Дом искусств', 'Кафе «Квисисана»'],
+      correct: 1,
+      explain: 'Это гимн «Подвала Бродячей собаки», написанный поэтом Всеволодом Князевым. Подвал на Итальянской, 4 — сердце богемной жизни Серебряного века.'
+    },
+    {
+      quote: 'Так под кровлей Фонтанного Дома, Где вечерняя бродит истома С фонарем и связкой ключей...',
+      q: 'Кто написал эти строки и о каком месте они?',
+      opts: ['Бродский, Дом Мурузи', 'Ахматова, Фонтанный дом', 'Блок, квартира на Декабристов', 'Белый, Летний сад'],
+      correct: 1,
+      explain: 'Это строки из «Поэмы без героя» Анны Ахматовой. Фонтанный дом — Шереметевский дворец на набережной Фонтанки, 34, где поэтесса прожила почти 30 лет.'
+    },
+    {
+      quote: 'Казалось: попади в эту «башню», — забудешь в какой ты стране и в какой ты эпохе; столетия, годы, недели, часы — всё сместится.',
+      q: 'О чьей квартире пишет Андрей Белый?',
+      opts: ['Квартира Блока', '«Башня» Вячеслава Иванова', 'Дом Мурузи', 'Фонтанный дом'],
+      correct: 1,
+      explain: 'Андрей Белый описывает квартиру поэта-символиста Вячеслава Иванова на Таврической, 35 — знаменитую «Башню», где проходили ночные «Ивановские среды».'
+    },
+    {
+      quote: 'По вечерам зажигались многочисленные огни в его окнах — и весь он казался кораблем, идущим сквозь мрак, метель и ненастье.',
+      q: 'О каком здании пишет Ходасевич?',
+      opts: ['Гостиница «Астория»', 'Дом Мурузи', 'Дом искусств (ДИСК)', 'Особняк Кшесинской'],
+      correct: 2,
+      explain: 'Ходасевич описывает Дом искусств на набережной Мойки, 59 — место, где в 1919–1922 годах жили писатели и поэты, спасённые Горьким от голода.'
+    },
+  ],
+  hard: [
+    {
+      q: 'Какой необычный гость однажды посетил ресторан «Вена» вместе с Куприным?',
+      opts: ['Попугай', 'Живой медвежонок', 'Обезьяна', 'Собака'],
+      correct: 1,
+      explain: 'Александр Куприн однажды явился в ресторан «Вена» в компании живого медвежонка и посадил его за стол. Один из официантов упал в обморок.'
+    },
+    {
+      q: 'Как Ахматова сохраняла стихи «Реквиема», которые нельзя было записывать?',
+      opts: ['Прятала в книгах', 'Подруги заучивали наизусть, бумага сжигалась', 'Отправляла за границу', 'Шифровала в письмах'],
+      correct: 1,
+      explain: 'Ахматова читала строфы «Реквиема» близким подругам, те заучивали их наизусть, а бумага сжигалась. Стихи существовали только в человеческой памяти.'
+    },
+    {
+      q: 'В каком году Бродского арестовали прямо из квартиры в Доме Мурузи?',
+      opts: ['1960', '1964', '1968', '1972'],
+      correct: 1,
+      explain: 'В 1964 году Бродского арестовали из квартиры в Доме Мурузи. На суде его назвали «тунеядцем» и отправили в ссылку.'
+    },
+    {
+      q: 'Что именно было технической новинкой в кафе «Квисисана»?',
+      opts: ['Электрическое освещение', 'Телефон для заказов', 'Буфеты-автоматы', 'Лифт'],
+      correct: 2,
+      explain: 'Главной сенсацией «Квисисаны» были буфеты-автоматы: опускаешь монету — и еда появляется сама, без официанта. По меркам 1900-х это было как современные роботы-официанты.'
+    },
+    {
+      q: 'Во сколько лет умер Александр Блок в своей квартире на улице Декабристов?',
+      opts: ['35 лет', '40 лет', '45 лет', '50 лет'],
+      correct: 1,
+      explain: 'Блок умер 7 августа 1921 года в возрасте 40 лет. Официальная причина — болезнь сердца, но современники говорили, что он умер от разочарования в революции.'
+    },
+    {
+      q: 'Почему «Ивановские среды» фактически проходили в четверг?',
+      opts: ['Иванов ошибся с датой', 'Гости собирались после полуночи', 'Это была традиция символистов', 'Из-за работы участников'],
+      correct: 1,
+      explain: 'Собрания начинались глубоко за полночь и заканчивались на рассвете — формально это уже был четверг. Но все продолжали называть их средами, потому что на «Башне» время жило по своим законам.'
+    },
+    {
+      q: 'Сколько единиц хранения насчитывается в Пушкинском доме?',
+      opts: ['Более 100 000', 'Более 200 000', 'Более 400 000', 'Более 1 000 000'],
+      correct: 2,
+      explain: 'В Пушкинском доме хранится более 400 000 единиц: рукописи Пушкина, Толстого, Достоевского, Ахматовой и многих других.'
+    },
+    {
+      q: 'Что произошло с особняком Кшесинской в феврале 1917 года?',
+      opts: ['Сгорел при пожаре', 'Балерина уехала и оставила его', 'Кшесинская бежала, дом заняли большевики', 'Продан на аукционе'],
+      correct: 2,
+      explain: 'Когда грянула революция, Кшесинская бежала в одном платье. Дом немедленно заняли большевики — и уже в апреле 1917-го с его балкона выступал Ленин.'
+    },
+  ]
+};
+
+// Build mixed set
+QUESTIONS.mixed = shuffle([
+  ...QUESTIONS.test.slice(0,5),
+  ...QUESTIONS.quote.slice(0,3),
+  ...QUESTIONS.hard.slice(0,4)
+]);
+
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5);}
+
+let currentMode = '';
+let questions = [];
+let currentIdx = 0;
+let score = 0;
+let correct = 0;
+let wrong = 0;
+let answered = false;
+
+function startQuiz(mode) {
+  currentMode = mode;
+  questions = shuffle(mode === 'mixed' ? QUESTIONS.mixed : QUESTIONS[mode]).slice(0, 10);
+  currentIdx = 0; score = 0; correct = 0; wrong = 0;
+  document.getElementById('modeSelect').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('quizWrap').classList.add('active');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[currentIdx];
+  const total = questions.length;
+  document.getElementById('progressLabel').textContent = `Вопрос ${currentIdx+1} из ${total}`;
+  document.getElementById('progressScore').textContent = `${score} очков`;
+  document.getElementById('progressFill').style.width = `${(currentIdx/total)*100}%`;
+  document.getElementById('nextBtn').classList.remove('show');
+
+  const isQuote = q.quote !== undefined;
+  const letters = ['А','Б','В','Г'];
+
+  let html = `<div class="q-card">
+    <div class="q-num">Вопрос ${currentIdx+1} <span class="q-type-badge">${isQuote ? 'Цитата' : 'Тест'}</span></div>`;
+
+  if (isQuote) {
+    html += `<div class="q-quote"><span class="q-quote-mark">"</span><div class="q-quote-text">${q.quote}</div></div>`;
+  }
+
+  html += `<div class="q-text">${q.q}</div>
+    <div class="options">`;
+
+  q.opts.forEach((opt, i) => {
+    html += `<button class="opt" id="opt${i}" onclick="selectAnswer(${i})">
+      <span class="opt-letter">${letters[i]}</span>${opt}</button>`;
+  });
+
+  html += `</div>
+    <div class="feedback" id="feedback"></div>
+  </div>`;
+
+  document.getElementById('questionArea').innerHTML = html;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentIdx];
+  const fb = document.getElementById('feedback');
+  const opts = document.querySelectorAll('.opt');
+
+  opts.forEach(o => o.disabled = true);
+
+  if (idx === q.correct) {
+    opts[idx].classList.add('correct');
+    score += 10;
+    correct++;
+    fb.innerHTML = `<span class="feedback-icon">✅</span> Верно! ${q.explain}`;
+    fb.className = 'feedback correct-fb show';
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correct].classList.add('reveal');
+    wrong++;
+    fb.innerHTML = `<span class="feedback-icon">❌</span> Неверно. Правильный ответ: <strong>${q.opts[q.correct]}</strong>. ${q.explain}`;
+    fb.className = 'feedback wrong-fb show';
+  }
+
+  document.getElementById('progressScore').textContent = `${score} очков`;
+  document.getElementById('nextBtn').classList.add('show');
+
+  if (currentIdx === questions.length - 1) {
+    document.getElementById('nextBtn').textContent = 'Посмотреть результаты →';
+  }
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+    window.scrollTo({top: document.getElementById('quizWrap').offsetTop - 80, behavior:'smooth'});
+  }
+}
+
+function showResults() {
+  document.getElementById('quizWrap').classList.remove('active');
+  const results = document.getElementById('results');
+  results.classList.add('show');
+  const total = questions.length;
+  const pct = Math.round((correct/total)*100);
+
+  document.getElementById('statCorrect').textContent = correct;
+  document.getElementById('statWrong').textContent = wrong;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('resultScore').textContent = correct;
+  document.getElementById('resultTotal').textContent = `из ${total} правильных ответов`;
+
+  let icon, title, msg;
+  if (pct >= 90) {
+    icon = '🏆'; title = 'Блестящий <em>результат!</em>';
+    msg = 'Вы отлично знаете литературный Петербург! Кажется, вы были там лично — или очень внимательно слушали аудиогид.';
+  } else if (pct >= 70) {
+    icon = '⭐'; title = 'Хороший <em>результат!</em>';
+    msg = 'Вы хорошо знаете маршрут! Несколько деталей ускользнули, но в целом — отличный результат. Попробуйте ещё раз?';
+  } else if (pct >= 50) {
+    icon = '📖'; title = 'Неплохое <em>начало!</em>';
+    msg = 'Половина вопросов позади успешно. Рекомендуем перечитать тексты аудиогида и попробовать снова!';
+  } else {
+    icon = '🗺️'; title = 'Маршрут <em>ждёт!</em>';
+    msg = 'Кажется, Петербург ещё раскрыл не все свои секреты. Вернитесь к маршруту и загляните в исторические справки!';
+  }
+
+  document.getElementById('resultIcon').textContent = icon;
+  document.getElementById('resultTitle').innerHTML = title;
+  document.getElementById('resultMsg').textContent = msg;
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+function restartQuiz() {
+  document.getElementById('results').classList.remove('show');
+  startQuiz(currentMode);
+}
+
+function showModes() {
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('modeSelect').style.display = 'block';
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
